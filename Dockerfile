@@ -1,14 +1,9 @@
-FROM fluent/fluentd:v0.12.28-onbuild
-WORKDIR /home/fluent
-ENV PATH /home/fluent/.gem/ruby/2.3.0/bin:$PATH
-
+FROM fluent/fluentd
 USER root
-RUN apk --no-cache --update add sudo && \
-    sudo -u fluent gem install fluent-plugin-mongo -v 0.7.15 && \
-    rm -rf /home/fluent/.gem/ruby/2.3.0/cache/*.gem && sudo -u fluent gem sources -c && \
-    apk del sudo build-base ruby-dev && rm -rf /var/cache/apk/*
-
-EXPOSE 24284
-
+RUN apk update
+RUN apk add --no-cache --update --virtual .build-deps sudo build-base ruby-dev \
+   && sudo gem install fluent-plugin-mongo \
+   && sudo gem sources --clear-all \
+   && apk del .build-deps \
+   && rm -rf /home/fluent/.gem/ruby/2.5.0/cache/*.gem
 USER fluent
-CMD exec fluentd -c /fluentd/etc/$FLUENTD_CONF -p /fluentd/plugins $FLUENTD_OPT
